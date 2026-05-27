@@ -3,22 +3,25 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const https = require('https');
-const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { execSync, spawn } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*', methods: ['GET', 'POST'] }));
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '500mb' }));
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 
 app.get('/health', (req, res) => res.json({ status: 'ok', message: 'LyricVid API running!' }));
 
+// ── TRANSCRIBE (unchanged) ──────────────────────────────────────────────────
+
 async function transcribeWithHF(audioBuffer, mimetype) {
   const HF_API_TOKEN = process.env.HF_API_TOKEN;
   if (!HF_API_TOKEN) throw new Error('HF_API_TOKEN not configured');
-
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'api-inference.huggingface.co',
@@ -31,7 +34,6 @@ async function transcribeWithHF(audioBuffer, mimetype) {
       },
       timeout: 60000
     };
-
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -43,15 +45,13 @@ async function transcribeWithHF(audioBuffer, mimetype) {
               setTimeout(() => transcribeWithHF(audioBuffer, mimetype).then(resolve).catch(reject), 20000);
               return;
             }
-            reject(new Error(result.error));
-            return;
+            reject(new Error(result.error)); return;
           }
           const text = result.text || (typeof result === 'string' ? result : '');
           resolve(buildWordTimings(text, result.chunks));
         } catch (e) { reject(new Error('Failed to parse response: ' + data)) }
       });
     });
-
     req.on('error', (e) => reject(new Error('Network error: ' + e.message)));
     req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')) });
     req.write(audioBuffer);
@@ -78,11 +78,9 @@ function buildWordTimings(text, chunks) {
 app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
-    console.log(`Transcribing: ${req.file.originalname} (${(req.file.size / 1024).toFixed(0)}KB)`);
     const result = await transcribeWithHF(req.file.buffer, req.file.mimetype);
     res.json({ success: true, transcript: result.fullText, words: result.words });
   } catch (err) {
-    console.error('Transcription error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -96,6 +94,64 @@ app.post('/api/upload', upload.single('audio'), async (req, res) => {
       data: `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── RENDER TO MP4 ───────────────────────────────────────────────────────────
+
+app.post('/api/render', express.json({ limit: '500mb' }), async (req, res) => {
+  const tmpDir = `/tmp/lyricvid_${Date.now()}`;
+  try {
+    const { frames, audio, fps = 24, duration } = req.body;
+    if (!frames || !frames.length) return res.status(400).json({ error: 'No frames provided' });
+    if (!audio) return res.status(400).json({ error: 'No audio provided' });
+
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    // Write frames as JPEG files
+    for (let i = 0; i < frames.length; i++) {
+      const base64 = frames[i].replace(/^data:image\/jpeg;base64,/, '');
+      fs.writeFileSync(path.join(tmpDir, `frame${String(i).padStart(5, '0')}.jpg`), Buffer.from(base64, 'base64'));
+    }
+
+    // Write audio file
+    const audioBase64 = audio.replace(/^data:audio\/[^;]+;base64,/, '');
+    const audioPath = path.join(tmpDir, 'audio.mp3');
+    fs.writeFileSync(audioPath, Buffer.from(audioBase64, 'base64'));
+
+    const outputPath = path.join(tmpDir, 'output.mp4');
+
+    // FFmpeg: frames + audio → MP4
+    await new Promise((resolve, reject) => {
+      const ff = spawn('ffmpeg', [
+        '-framerate', String(fps),
+        '-i', path.join(tmpDir, 'frame%05d.jpg'),
+        '-i', audioPath,
+        '-c:v', 'libx264',
+        '-preset', 'ultrafast',
+        '-crf', '23',
+        '-c:a', 'aac',
+        '-b:a', '192k',
+        '-shortest',
+        '-movflags', '+faststart',
+        '-pix_fmt', 'yuv420p',
+        outputPath
+      ]);
+      ff.on('close', code => code === 0 ? resolve() : reject(new Error(`FFmpeg exited with code ${code}`)));
+      ff.on('error', reject);
+    });
+
+    const mp4Buffer = fs.readFileSync(outputPath);
+    res.set('Content-Type', 'video/mp4');
+    res.set('Content-Disposition', `attachment; filename="lyricvid-${Date.now()}.mp4"`);
+    res.send(mp4Buffer);
+
+  } catch (err) {
+    console.error('Render error:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    // Cleanup temp files
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+  }
 });
 
 app.listen(PORT, () => console.log(`LyricVid backend running on port ${PORT}`));
