@@ -1,112 +1,186 @@
-export const THEMES = [
-  // ── GenZ / Reel Themes ──
-  { id: 'neon-noir', name: 'Neon Noir', tag: '🔥', preview: ['#000000', '#ff1fa0', '#ffffff'] },
-  { id: 'cyberpunk', name: 'Cyberpunk', tag: '⚡', preview: ['#0d0221', '#00ffff', '#ffff00'] },
-  { id: 'vaporwave', name: 'Vaporwave', tag: '🌸', preview: ['#1a0040', '#ff71ce', '#01cdfe'] },
-  { id: 'dark-luxury', name: 'Dark Luxury', tag: '👑', preview: ['#0a0a0a', '#c9a84c', '#ffffff'] },
-  { id: 'holographic', name: 'Holo', tag: '✨', preview: ['#050505', '#ff00ff', '#00ffff'] },
-  { id: 'fire', name: 'Fire', tag: '🔥', preview: ['#0a0000', '#ff4500', '#ffff00'] },
-  { id: 'ice', name: 'Icy', tag: '❄️', preview: ['#000d1a', '#00d4ff', '#ffffff'] },
-  { id: 'golden', name: 'Golden Hour', tag: '🌅', preview: ['#0a0500', '#ffd700', '#ffffff'] },
-  { id: 'matrix', name: 'Matrix', tag: '🟢', preview: ['#000000', '#00ff00', '#003300'] },
-  { id: 'retro', name: 'Retro', tag: '📼', preview: ['#1a0a00', '#ff8c00', '#ffe0b2'] },
-  { id: 'graffiti', name: 'Graffiti', tag: '🎨', preview: ['#111111', '#ff6b35', '#f7c59f'] },
-  { id: 'minimal', name: 'Minimal', tag: '⬜', preview: ['#ffffff', '#000000', '#555555'] },
-  // ── New Real Reel Themes ──
-  { id: 'midnight-drip', name: 'Midnight Drip', tag: '💧', preview: ['#0a0015', '#7b2fff', '#e040fb'] },
-  { id: 'trap-god', name: 'Trap God', tag: '💎', preview: ['#0d0d0d', '#silver', '#ffffff'], previewColors: ['#0d0d0d', '#c0c0c0', '#ffffff'] },
-  { id: 'aesthetic', name: 'Aesthetic', tag: '🌷', preview: ['#1a0a1a', '#ff85a1', '#ffc8dd'] },
-  { id: 'streetwear', name: 'Streetwear', tag: '👟', preview: ['#111111', '#ff4655', '#ffffff'] },
-  { id: 'lo-fi', name: 'Lo-Fi', tag: '🎧', preview: ['#1a1a2e', '#e94560', '#f5a623'] },
-  { id: 'neon-jungle', name: 'Neon Jungle', tag: '🌿', preview: ['#001a00', '#39ff14', '#00ff9f'] },
-  { id: 'sad-boy', name: 'Sad Boy', tag: '🌧️', preview: ['#0d0d1a', '#4a4aff', '#8888ff'] },
-  { id: 'drip-gold', name: 'Drip Gold', tag: '🏆', preview: ['#0a0800', '#ffd700', '#ff8c00'] },
-]
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const multer = require('multer');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const { spawn } = require('child_process');
 
-export const FONTS = [
-  // Display / Bold
-  { id: 'Bebas Neue', name: 'BEBAS NEUE', category: 'Display' },
-  { id: 'Anton', name: 'ANTON BOLD', category: 'Display' },
-  { id: 'Bungee', name: 'BUNGEE', category: 'Display' },
-  { id: 'Russo One', name: 'RUSSO ONE', category: 'Bold' },
-  { id: 'Teko', name: 'TEKO CONDENSED', category: 'Condensed' },
-  // Futuristic
-  { id: 'Orbitron', name: 'ORBITRON', category: 'Futuristic' },
-  { id: 'Exo 2', name: 'EXO 2', category: 'Futuristic' },
-  { id: 'Rajdhani', name: 'Rajdhani', category: 'Futuristic' },
-  // GenZ / Trendy
-  { id: 'Bangers', name: 'Bangers!', category: 'GenZ' },
-  { id: 'Righteous', name: 'Righteous', category: 'GenZ' },
-  { id: 'Fredoka One', name: 'Fredoka One', category: 'GenZ' },
-  { id: 'Lilita One', name: 'Lilita One', category: 'GenZ' },
-  // Handwritten / Vibe
-  { id: 'Permanent Marker', name: 'Marker Vibe', category: 'Handwritten' },
-  { id: 'Pacifico', name: 'Pacifico', category: 'Handwritten' },
-  { id: 'Dancing Script', name: 'Dancing Script', category: 'Handwritten' },
-  // Serif / Luxury
-  { id: 'Abril Fatface', name: 'Abril Fatface', category: 'Luxury' },
-  { id: 'Playfair Display', name: 'Playfair Display', category: 'Luxury' },
-]
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-export const TEXT_EFFECTS = [
-  { id: 'none', name: 'None', icon: '✦', desc: 'Clean' },
-  { id: 'neon-glow', name: 'Neon Glow', icon: '💫', desc: 'Glowing edges' },
-  { id: 'glitch', name: 'Glitch', icon: '⚡', desc: 'Cyberpunk flicker' },
-  { id: 'typewriter', name: 'Typewriter', icon: '⌨️', desc: 'Letter by letter' },
-  { id: 'bounce', name: 'Bounce', icon: '🏀', desc: 'Elastic pop' },
-  { id: 'flame', name: 'Flame', icon: '🔥', desc: 'Fire at base' },
-  { id: 'wave', name: 'Wave', icon: '🌊', desc: 'Flowing motion' },
-  { id: 'zoom-pulse', name: 'Zoom Pulse', icon: '🎯', desc: 'Beat sync' },
-  { id: 'slide-up', name: 'Slide Up', icon: '⬆️', desc: 'Enters from below' },
-  { id: 'fade', name: 'Fade In', icon: '✨', desc: 'Smooth appear' },
-  { id: 'shake', name: 'Shake', icon: '📳', desc: 'Vibrate' },
-  { id: 'rainbow', name: 'Rainbow', icon: '🌈', desc: 'Color cycle' },
-  { id: 'shimmer', name: 'Shimmer', icon: '⭐', desc: 'Sparkle sweep' },
-  { id: 'freeze', name: 'Freeze', icon: '❄️', desc: 'Icy crystallize' },
-  { id: 'matrix', name: 'Matrix', icon: '🟢', desc: 'Digital rain' },
-  { id: 'pop', name: 'Pop', icon: '💥', desc: 'Scale pop in' },
-  { id: 'blur-in', name: 'Blur In', icon: '🔮', desc: 'Focuses in' },
-  { id: 'karaoke', name: 'Karaoke', icon: '🎤', desc: 'Word highlight' },
-]
+app.use(cors({ origin: '*', methods: ['GET', 'POST'], allowedHeaders: ['Content-Type'] }));
+app.use(express.json({ limit: '50mb' }));
 
-export const TRANSITIONS = [
-  { id: 'fade', name: 'Fade', icon: '✨', desc: 'Smooth fade in, stays visible' },
-  { id: 'fadeInOut', name: 'Fade In/Out', icon: '💫', desc: 'Fades in then fades out' },
-  { id: 'slideUp', name: 'Slide Up', icon: '⬆️', desc: 'Slides up in and out' },
-  { id: 'scale', name: 'Scale Pop', icon: '💥', desc: 'Pops in from small' },
-  { id: 'blur', name: 'Blur', icon: '🔮', desc: 'Blurs into focus' },
-  { id: 'drop', name: 'Drop In', icon: '⬇️', desc: 'Falls in from top' },
-  { id: 'glitch', name: 'Glitch Cut', icon: '⚡', desc: 'Hard glitch switch' },
-]
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 
-export const PATTERNS = [
-  { id: 'particles', name: 'Particles' },
-  { id: 'geometric', name: 'Geometric' },
-  { id: 'stars', name: 'Stars' },
-  { id: 'matrix', name: 'Matrix Rain' },
-  { id: 'grid', name: 'Grid' },
-  { id: 'bokeh', name: 'Bokeh' },
-  { id: 'hexagon', name: 'Hexagon' },
-  { id: 'aurora', name: 'Aurora' },
-  { id: 'lightning', name: 'Lightning' },
-  { id: 'noise', name: 'Noise' },
-]
+app.get('/health', (req, res) => res.json({ status: 'ok', message: 'LyricVid API running!' }));
 
-export const COLOR_PALETTES = [
-  { name: 'Hot Pink', colors: ['#ff1fa0', '#ff96d9', '#ffffff'] },
-  { name: 'Electric Blue', colors: ['#0066ff', '#00ccff', '#ffffff'] },
-  { name: 'Toxic Green', colors: ['#00ff41', '#00cc33', '#ffffff'] },
-  { name: 'Sunset', colors: ['#ff6b35', '#f7c59f', '#ffff00'] },
-  { name: 'Purple Haze', colors: ['#7b2fff', '#c77dff', '#ffffff'] },
-  { name: 'Gold Rush', colors: ['#ffd700', '#ffaa00', '#ffffff'] },
-  { name: 'Arctic', colors: ['#00d4ff', '#a8edea', '#ffffff'] },
-  { name: 'Lava', colors: ['#ff4500', '#ff8c00', '#ffff00'] },
-  { name: 'Monochrome', colors: ['#ffffff', '#aaaaaa', '#555555'] },
-  { name: 'Cherry', colors: ['#dc143c', '#ff69b4', '#ffffff'] },
-  { name: 'Midnight', colors: ['#7b2fff', '#e040fb', '#ffffff'] },
-  { name: 'Drip Gold', colors: ['#ffd700', '#ff8c00', '#ffffff'] },
-  { name: 'Neon Jungle', colors: ['#39ff14', '#00ff9f', '#ffffff'] },
-  { name: 'Sad Vibes', colors: ['#4a4aff', '#8888ff', '#ffffff'] },
-  { name: 'Street Red', colors: ['#ff4655', '#ff8888', '#ffffff'] },
-  { name: 'Rose Soft', colors: ['#ff85a1', '#ffc8dd', '#ffffff'] },
-]
+// ── TRANSCRIBE ──────────────────────────────────────────────────────────────
+
+async function transcribeWithHF(audioBuffer, mimetype) {
+  const HF_API_TOKEN = process.env.HF_API_TOKEN;
+  if (!HF_API_TOKEN) throw new Error('HF_API_TOKEN not configured');
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api-inference.huggingface.co',
+      path: '/models/openai/whisper-large-v3',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${HF_API_TOKEN}`,
+        'Content-Type': mimetype || 'audio/mpeg',
+        'Content-Length': audioBuffer.length
+      },
+      timeout: 60000
+    };
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          if (result.error) {
+            if (result.error.includes('loading')) {
+              setTimeout(() => transcribeWithHF(audioBuffer, mimetype).then(resolve).catch(reject), 20000);
+              return;
+            }
+            reject(new Error(result.error)); return;
+          }
+          const text = result.text || (typeof result === 'string' ? result : '');
+          resolve(buildWordTimings(text, result.chunks));
+        } catch (e) { reject(new Error('Failed to parse response: ' + data)); }
+      });
+    });
+    req.on('error', (e) => reject(new Error('Network error: ' + e.message)));
+    req.on('timeout', () => { req.destroy(); reject(new Error('Request timed out')); });
+    req.write(audioBuffer);
+    req.end();
+  });
+}
+
+function buildWordTimings(text, chunks) {
+  if (!text || !text.trim()) return { fullText: '', words: [] };
+  const words = text.trim().split(/\s+/);
+  const duration = words.length * 0.45;
+  return {
+    fullText: text.trim(),
+    words: chunks && chunks.length > 0
+      ? chunks.map(c => ({ word: c.text.trim(), start: c.timestamp[0] || 0, end: c.timestamp[1] || 0 })).filter(w => w.word.length > 0)
+      : words.map((word, i) => ({
+          word,
+          start: parseFloat((i * (duration / words.length)).toFixed(2)),
+          end: parseFloat(((i + 1) * (duration / words.length)).toFixed(2))
+        }))
+  };
+}
+
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
+    const result = await transcribeWithHF(req.file.buffer, req.file.mimetype);
+    res.json({ success: true, transcript: result.fullText, words: result.words });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/upload', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file provided' });
+    res.json({
+      success: true, filename: req.file.originalname,
+      mimetype: req.file.mimetype, size: req.file.size,
+      data: `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── CHUNK UPLOAD ────────────────────────────────────────────────────────────
+
+const jobFrames = {};
+
+app.post('/api/upload-chunk', (req, res) => {
+  try {
+    const { jobId, chunkIndex, totalChunks, frames } = req.body;
+    if (!jobId || !frames) return res.status(400).json({ error: 'Missing jobId or frames' });
+    if (!jobFrames[jobId]) jobFrames[jobId] = { chunks: {}, totalChunks };
+    jobFrames[jobId].chunks[chunkIndex] = frames;
+    console.log(`Job ${jobId}: chunk ${chunkIndex + 1}/${totalChunks} received (${frames.length} frames)`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Chunk upload error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── RENDER TO MP4 ───────────────────────────────────────────────────────────
+
+app.post('/api/render', async (req, res) => {
+  const tmpDir = `/tmp/lyricvid_${Date.now()}`;
+  try {
+    const { jobId, audio, fps = 24, duration, trimStart = 0 } = req.body;
+
+    if (!jobId || !jobFrames[jobId]) return res.status(400).json({ error: 'No frames found for this job' });
+    if (!audio) return res.status(400).json({ error: 'No audio provided' });
+
+    const job = jobFrames[jobId];
+    const frames = Object.keys(job.chunks)
+      .sort((a, b) => Number(a) - Number(b))
+      .flatMap(k => job.chunks[k]);
+
+    delete jobFrames[jobId];
+
+    console.log(`Rendering job ${jobId}: ${frames.length} frames at ${fps}fps`);
+
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    for (let i = 0; i < frames.length; i++) {
+      const base64 = frames[i].replace(/^data:image\/jpeg;base64,/, '');
+      fs.writeFileSync(
+        path.join(tmpDir, `frame${String(i).padStart(5, '0')}.jpg`),
+        Buffer.from(base64, 'base64')
+      );
+    }
+
+    const audioBase64 = audio.replace(/^data:[^;]+;base64,/, '');
+    const audioPath = path.join(tmpDir, 'audio.bin');
+    fs.writeFileSync(audioPath, Buffer.from(audioBase64, 'base64'));
+
+    const outputPath = path.join(tmpDir, 'output.mp4');
+
+    await new Promise((resolve, reject) => {
+      const ff = spawn('ffmpeg', [
+        '-framerate', String(fps),
+        '-i', path.join(tmpDir, 'frame%05d.jpg'),
+        '-ss', String(trimStart),
+        '-i', audioPath,
+        '-c:v', 'libx264',
+        '-preset', 'ultrafast',
+        '-crf', '23',
+        '-c:a', 'aac',
+        '-b:a', '192k',
+        '-shortest',
+        '-movflags', '+faststart',
+        '-pix_fmt', 'yuv420p',
+        outputPath
+      ]);
+      ff.stderr.on('data', d => console.log('ffmpeg:', d.toString()));
+      ff.on('close', code => code === 0 ? resolve() : reject(new Error(`FFmpeg exited with code ${code}`)));
+      ff.on('error', reject);
+    });
+
+    const mp4Buffer = fs.readFileSync(outputPath);
+    res.set('Content-Type', 'video/mp4');
+    res.set('Content-Disposition', `attachment; filename="lyricvid-${Date.now()}.mp4"`);
+    res.send(mp4Buffer);
+
+  } catch (err) {
+    console.error('Render error:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+  }
+});
+
+app.listen(PORT, () => console.log(`LyricVid backend running on port ${PORT}`));
