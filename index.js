@@ -264,7 +264,7 @@ app.post(
 
     const tmpDir = `/tmp/lyricvid_${Date.now()}`;
 
-    try const { jobId, audio, fps = 24, duration, trimStart = 0 } = req.body{
+    try const { jobId, audio, fps = 24, duration, trimStart = 0 } = req.body;
       
 
       if (!jobId || !jobFrames[jobId]) {
