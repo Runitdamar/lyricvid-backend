@@ -267,13 +267,8 @@ app.post(
 
     const tmpDir = `/tmp/lyricvid_${Date.now()}`;
 
-    try {
-      const {
-        jobId,
-        audio,
-        fps = 24,
-        duration
-      } = req.body;
+    try const { jobId, audio, fps = 24, duration, trimStart = 0 } = req.body{
+      
 
       if (!jobId || !jobFrames[jobId]) {
         return res.status(400).json({
@@ -340,42 +335,19 @@ app.post(
       // FFmpeg: frames + audio → MP4
       await new Promise((resolve, reject) => {
         const ff = spawn('ffmpeg', [
-          '-framerate',
-          String(fps),
-
-          '-i',
-          path.join(
-            tmpDir,
-            'frame%05d.jpg'
-          ),
-
-          '-i',
-          audioPath,
-
-          '-c:v',
-          'libx264',
-
-          '-preset',
-          'ultrafast',
-
-          '-crf',
-          '23',
-
-          '-c:a',
-          'aac',
-
-          '-b:a',
-          '192k',
-
-          '-shortest',
-
-          '-movflags',
-          '+faststart',
-
-          '-pix_fmt',
-          'yuv420p',
-
-          outputPath
+          '-framerate', String(fps),
+'-i', path.join(tmpDir, 'frame%05d.jpg'),
+'-ss', String(req.body.trimStart || 0),
+'-i', audioPath,
+'-c:v', 'libx264',
+'-preset', 'ultrafast',
+'-crf', '23',
+'-c:a', 'aac',
+'-b:a', '192k',
+'-shortest',
+'-movflags', '+faststart',
+'-pix_fmt', 'yuv420p',
+outputPath
         ]);
 
         ff.on('close', code => {
